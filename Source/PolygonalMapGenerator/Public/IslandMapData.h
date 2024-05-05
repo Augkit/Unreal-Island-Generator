@@ -128,7 +128,7 @@ public:
 	FRandomStream DrainageRng;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "RNG")
 	FRandomStream DistrictRng;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	const UIslandMeshBuilder* PointGenerator;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
@@ -143,7 +143,7 @@ public:
 	const UIslandWater* Water;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Map")
 	UIslandDistrict* District;
-	
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<URiver*> CreatedRivers;
 
@@ -262,20 +262,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	const TArray<FCoastlinePolygon>& GetCoastLines() const;
-	
-	UFUNCTION(BlueprintCallable)
-	void DrawRegion(UCanvasRenderTarget2D* RenderTarget2D) const;
-
-	UFUNCTION(BlueprintCallable)
-	void DrawRegionById(UCanvasRenderTarget2D* RenderTarget2D, int32 Id);
-
-	UFUNCTION(BlueprintCallable)
-	void DrawCoastline(UCanvasRenderTarget2D* RenderTarget2D) const;
-
-	UFUNCTION(BlueprintCallable)
-	void DrawTriangulationIsland(UCanvasRenderTarget2D* RenderTarget2D) const;
-
-	UFUNCTION(BlueprintCallable)
-	void DrawDistrict(UCanvasRenderTarget2D* RenderTarget2D) const;
-
 };
