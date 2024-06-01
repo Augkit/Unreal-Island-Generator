@@ -3,7 +3,8 @@
 This project is developed for our indie game, and will undergo significant changes based on the game design at this stage.
 <img width="1179" alt="Overview" src="https://github.com/Augkit/Unreal-Island-Generator/assets/23498912/36ec1c95-f5b3-4f69-9165-47f91d128336">
 
-## Created for Unreal Engine 5.3
+## Created for Unreal Engine 5.4.* Only
+Because the PCG API has many incompatible changes in ue5.4, it only maintains 5.4.* now.
 `NOTE: Many experimental features are used in the project`
 
 ### [Geometry Scripting](https://dev.epicgames.com/documentation/en-us/unreal-engine/geometry-scripting-users-guide-in-unreal-engine)
