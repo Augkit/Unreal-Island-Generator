@@ -107,7 +107,7 @@ public:
 	float TexelSize = 50.0f;
 };
 
-class FPCGIDTextureSamplerElement : public FSimplePCGElement
+class FPCGIDTextureSamplerElement : public IPCGElement
 {
 public:
 	virtual void GetDependenciesCrc(const FPCGDataCollection& InInput, const UPCGSettings* InSettings, UPCGComponent* InComponent, FPCGCrc& OutCrc) const override;
@@ -116,5 +116,5 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 public:
-	static TSharedRef<FIDTextueData> CreateOriginalIDTextueData(const UTexture2D* Texture1, const UTexture2D* Texture2);
+	static TSharedRef<FIDTextueData> CreateOriginalIDTextureData(const UTexture2D* Texture1, const UTexture2D* Texture2);
 };

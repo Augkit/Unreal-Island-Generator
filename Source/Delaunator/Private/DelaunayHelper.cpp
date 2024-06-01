@@ -5,6 +5,8 @@
 #include "DelaunayHelper.h"
 #include <delaunator.hpp>
 
+#include "Delaunator.h"
+
 float FDelaunayTriangle::GetArea() const
 {
 	const float ax = A.X;
@@ -141,17 +143,17 @@ float FDelaunayMesh::GetHullArea(float& OutErrorAmount) const
 	{
 		if (!Coordinates.IsValidIndex(current))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), current, Coordinates.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), static_cast<int32>(current), Coordinates.Num());
 			return 0.0f;
 		}
 		if (!HullPrevious.IsValidIndex(current))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid HullPrevious index. Index: %d, Array size: %d"), current, HullPrevious.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid HullPrevious index. Index: %d, Array size: %d"), static_cast<int32>(current), HullPrevious.Num());
 			return 0.0f;
 		}
 		if (!Coordinates.IsValidIndex(HullPrevious[current]))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), HullPrevious[current], Coordinates.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid Coordinate index. Index: %d, Array size: %d"), static_cast<int32>(HullPrevious[current]), Coordinates.Num());
 			return 0.0f;
 		}
 		float area = (Coordinates[current].X - Coordinates[HullPrevious[current]].X) * (Coordinates[current].Y + Coordinates[HullPrevious[current]].Y) / 2.0f;
@@ -159,12 +161,12 @@ float FDelaunayMesh::GetHullArea(float& OutErrorAmount) const
 		if (current == HullNext[current])
 		{
 			// Stuck in an infinite loop!
-			UE_LOG(LogDelaunator, Error, TEXT("Next vertex pointed to itself! Vertex index: %d"), current);
+			UE_LOG(LogDelaunator, Error, TEXT("Next vertex pointed to itself! Vertex index: %d"), static_cast<int32>(current));
 			return 0.0f;
 		}
 		if (!HullNext.IsValidIndex(current))
 		{
-			UE_LOG(LogDelaunator, Error, TEXT("Invalid HullNext index. Index: %d, Array size: %d"), current, HullNext.Num());
+			UE_LOG(LogDelaunator, Error, TEXT("Invalid HullNext index. Index: %d, Array size: %d"), static_cast<int32>(current), HullNext.Num());
 			return 0.0f;
 		}
 		current = HullNext[current];
@@ -228,7 +230,7 @@ FVector2D UDelaunayHelper::GetTrianglePoint(const FDelaunayMesh& Triangulation, 
 {
 	if (!Triangulation.DelaunayTriangles.IsValidIndex(TriangleIndex))
 	{
-		UE_LOG(LogDelaunator, Error, TEXT("Invalid triangle ID: %d"), TriangleIndex);
+		UE_LOG(LogDelaunator, Error, TEXT("Invalid triangle ID: %d"), static_cast<int32>(TriangleIndex));
 		return FVector2D(-1, -1);
 	}
 

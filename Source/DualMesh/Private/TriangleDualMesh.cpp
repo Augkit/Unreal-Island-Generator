@@ -20,6 +20,7 @@
 
 #include "TriangleDualMesh.h"
 #include "DrawDebugHelpers.h"
+#include "DualMesh.h"
 #include "GameFramework/Actor.h"
 
 FDualMesh::FDualMesh(const TArray<FVector2D>& GivenPoints, const FVector2D& MaxMapSize)
@@ -206,7 +207,7 @@ TArray<FSideIndex> UTriangleDualMesh::r_circulate_s(FPointIndex r) const
 	TArray<FSideIndex> out_s;
 	if (!_r_in_s.Contains(r))
 	{
-		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), r);
+		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), static_cast<int32>(r));
 		return out_s;
 	}
 
@@ -238,7 +239,7 @@ TArray<FPointIndex> UTriangleDualMesh::r_circulate_r(FPointIndex r) const
 	TArray<FPointIndex> out_r;
 	if (!_r_in_s.Contains(r))
 	{
-		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), r);
+		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), static_cast<int32>(r));
 		return out_r;
 	}
 
@@ -262,7 +263,7 @@ TArray<FPointIndex> UTriangleDualMesh::r_circulate_r(FPointIndex r) const
 	}
 	else
 	{
-		UE_LOG(LogDualMesh, Warning, TEXT("Attempted to start from an invalid region (%d)."), r);
+		UE_LOG(LogDualMesh, Warning, TEXT("Attempted to start from an invalid region (%d)."), static_cast<int32>(r));
 	}
 	return out_r;
 }
@@ -272,7 +273,7 @@ TArray<FTriangleIndex> UTriangleDualMesh::r_circulate_t(FPointIndex r) const
 	TArray<FTriangleIndex> out_t;
 	if (!_r_in_s.Contains(r))
 	{
-		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), r);
+		UE_LOG(LogDualMesh, Warning, TEXT("Region list did not contain point %d!"), static_cast<int32>(r));
 		return out_t;
 	}
 

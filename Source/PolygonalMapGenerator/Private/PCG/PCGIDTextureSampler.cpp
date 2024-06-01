@@ -92,7 +92,7 @@ bool FPCGIDTextureSamplerElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	TSharedRef<FIDTextueData> OriginalIDTextueData = CreateOriginalIDTextueData(
+	TSharedRef<FIDTextueData> OriginalIDTextueData = CreateOriginalIDTextureData(
 		Settings->IDTexture1, Settings->IDTexture2);
 	for (int32 ID = 1; ID <= 16; ++ID)
 	{
@@ -126,7 +126,7 @@ bool FPCGIDTextureSamplerElement::ExecuteInternal(FPCGContext* Context) const
 	return true;
 }
 
-TSharedRef<FIDTextueData> FPCGIDTextureSamplerElement::CreateOriginalIDTextueData(const UTexture2D* Texture1,
+TSharedRef<FIDTextueData> FPCGIDTextureSamplerElement::CreateOriginalIDTextureData(const UTexture2D* Texture1,
 	const UTexture2D* Texture2)
 {
 	const int32 PixelCount = Texture1->GetSizeX() * Texture1->GetSizeY();
@@ -173,7 +173,7 @@ void FPCGIDTextureSamplerElement::GetDependenciesCrc(const FPCGDataCollection& I
                                                      UPCGComponent* InComponent, FPCGCrc& OutCrc) const
 {
 	FPCGCrc Crc;
-	FSimplePCGElement::GetDependenciesCrc(InInput, InSettings, InComponent, Crc);
+	IPCGElement::GetDependenciesCrc(InInput, InSettings, InComponent, Crc);
 
 	if (const UPCGIDTextureSamplerSettings* Settings = Cast<UPCGIDTextureSamplerSettings>(InSettings))
 	{
