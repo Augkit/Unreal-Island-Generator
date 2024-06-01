@@ -9,7 +9,6 @@
 
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
-#include "Metadata/PCGMetadataAccessor.h"
 #include "PCG/PCGIDTextureSampler.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PCGIDTextureData)
@@ -39,7 +38,7 @@ bool UPCGIDTextureData::SamplePoint(const FTransform& InTransform, const FBox& I
 	PointPositionInLocalSpace.Z = 0;
 	OutPoint.Transform.SetLocation(Transform.TransformPosition(PointPositionInLocalSpace));
 	OutPoint.SetLocalBounds(InBounds);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrPrimaryID, PrimaryID);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrPrimaryID, PrimaryID);
 
 	FVector2D Position2D(PointPositionInLocalSpace.X, PointPositionInLocalSpace.Y);
 
@@ -62,19 +61,19 @@ bool UPCGIDTextureData::SamplePoint(const FTransform& InTransform, const FBox& I
 		                    : PixelData.DistrictID1 == PrimaryID
 		                    ? PixelData.Proportion1
 		                    : 0.f);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrPrimaryID, PrimaryID);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID1,
-	                                                   PixelData.DistrictID1);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID2,
-	                                                   PixelData.DistrictID2);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID3,
-	                                                   PixelData.DistrictID3);
-	UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID4,
-	                                                   PixelData.DistrictID4);
-	UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion1, PixelData.Proportion1);
-	UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion2, PixelData.Proportion2);
-	UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion3, PixelData.Proportion3);
-	UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion4, PixelData.Proportion4);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrPrimaryID, PrimaryID);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID1,
+	             PixelData.DistrictID1);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID2,
+	             PixelData.DistrictID2);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID3,
+	             PixelData.DistrictID3);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID4,
+	             PixelData.DistrictID4);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion1, PixelData.Proportion1);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion2, PixelData.Proportion2);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion3, PixelData.Proportion3);
+	SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion4, PixelData.Proportion4);
 	return OutPoint.Density > 0;
 }
 
@@ -145,23 +144,23 @@ const UPCGPointData* UPCGIDTextureData::CreatePointData(FPCGContext* Context) co
 					FTransform(Transform.TransformPosition(LocalPosition)),
 					Density,
 					PCGHelpers::ComputeSeed(X, Y));
-				UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrPrimaryID, PrimaryID);
-				UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID1,
-				                                                   PixelData.DistrictID1);
-				UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID2,
-				                                                   PixelData.DistrictID2);
-				UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID3,
-				                                                   PixelData.DistrictID3);
-				UPCGMetadataAccessorHelpers::SetInteger32Attribute(OutPoint, OutMetadata, DataAttrDistrictID4,
-				                                                   PixelData.DistrictID4);
-				UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion1,
-				                                               PixelData.Proportion1);
-				UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion2,
-				                                               PixelData.Proportion2);
-				UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion3,
-				                                               PixelData.Proportion3);
-				UPCGMetadataAccessorHelpers::SetFloatAttribute(OutPoint, OutMetadata, DataAttrProportion4,
-				                                               PixelData.Proportion4);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrPrimaryID, PrimaryID);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID1,
+				             PixelData.DistrictID1);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID2,
+				             PixelData.DistrictID2);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID3,
+				             PixelData.DistrictID3);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrDistrictID4,
+				             PixelData.DistrictID4);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion1,
+				             PixelData.Proportion1);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion2,
+				             PixelData.Proportion2);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion3,
+				             PixelData.Proportion3);
+				SetAttribute(OutPoint.MetadataEntry, OutMetadata, DataAttrProportion4,
+				             PixelData.Proportion4);
 
 				OutPoint.SetExtents(FVector(TexelSize / 2.0));
 
@@ -221,4 +220,20 @@ UPCGSpatialData* UPCGIDTextureData::CopyInternal() const
 	NewTextureData->TextureData = TextureData;
 
 	return NewTextureData;
+}
+
+template <typename T>
+void UPCGIDTextureData::SetAttribute(PCGMetadataEntryKey& Key, UPCGMetadata* Metadata, FName AttributeName,
+                                     const T& Value)
+{
+	if (Key == PCGInvalidEntryKey)
+	{
+		return;
+	}
+	FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Metadata->
+		GetMutableAttribute(AttributeName));
+	if (Attribute && Attribute->GetTypeId() == PCG::Private::MetadataTypes<T>::Id)
+	{
+		Attribute->SetValue(Key, Value);
+	}
 }

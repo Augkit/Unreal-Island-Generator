@@ -193,7 +193,7 @@ void UIslandElevation::AssignTriangleElevations_Implementation(TArray<float>& t_
 			{
 				if (t_coastdistance[t] == -1)
 				{
-					UE_LOG(LogMapGen, Warning, TEXT("Found unitialized coast distance triangle: %d"), t);
+					UE_LOG(LogMapGen, Warning, TEXT("Found unitialized coast distance triangle: %d"), static_cast<int32>(t));
 				}
 			}
 		}

@@ -23,6 +23,8 @@
 #include <vector>
 
 #include "CoreMinimal.h"
+#include "DualMesh.h"
+#include "DualMeshBuilder.h"
 
 #include "Delaunator/Public/DelaunayHelper.h"
 
@@ -243,7 +245,8 @@ bool FMeshConnectivityTest::RunTest(const FString& Parameters)
 	{
 		if (mesh.HalfEdges[mesh.HalfEdges[s0]] != s0)
 		{
-			UE_LOG(LogDualMesh, Error, TEXT("Half-edges at vertex %d don't point back to itself (%d, %d, %d)!"), s0, s0, mesh.HalfEdges[s0], mesh.HalfEdges[mesh.HalfEdges[s0]]);
+			UE_LOG(LogDualMesh, Error, TEXT("Half-edges at vertex %d don't point back to itself (%d, %d, %d)!"), s0, s0,
+			       static_cast<int32>(mesh.HalfEdges[s0]), static_cast<int32>(mesh.HalfEdges[mesh.HalfEdges[s0]]));
 			return false;
 		}
 		int32 s = s0;
