@@ -21,10 +21,20 @@
 UIslandRadialWater::UIslandRadialWater()
 {
 	Bumps = 3;
+	bRandomStartAngle = true;
 	StartAngle = 1.0f;
 	AngleOffset = 1.0f;
 	MinAngle = 0.5f;
 	LandScale = 1.25f;
+}
+
+void UIslandRadialWater::InitializeWater_Implementation(TArray<bool>& r_water, UTriangleDualMesh* Mesh,
+	FRandomStream& Rng) const
+{
+	if(bRandomStartAngle)
+	{
+		RandomStartAngle = Rng.GetFraction();
+	}
 }
 
 bool UIslandRadialWater::IsPointLand_Implementation(FPointIndex Point, UTriangleDualMesh* Mesh, const FVector2D& HalfMeshSize, const FVector2D& Offset, const FIslandShape& Shape) const
@@ -51,8 +61,8 @@ bool UIslandRadialWater::IsPointLand_Implementation(FPointIndex Point, UTriangle
 	}
 	else
 	{
-		innerRadius = 0.5f + 0.4f * FMath::Sin((StartAngle * PI) + Bumps * angle + FMath::Cos((Bumps + 3) * angle));
-		outerRadius = 0.7f - 0.2f * FMath::Sin((StartAngle * PI) + Bumps * angle - FMath::Sin((Bumps + 2) * angle));
+		innerRadius = 0.5f + 0.4f * FMath::Sin((bRandomStartAngle ? RandomStartAngle : StartAngle * PI) + Bumps * angle + FMath::Cos((Bumps + 3) * angle));
+		outerRadius = 0.7f - 0.2f * FMath::Sin((bRandomStartAngle ? RandomStartAngle : StartAngle * PI) + Bumps * angle - FMath::Sin((Bumps + 2) * angle));
 	}
 
 	return !((length + WaterCutoff < innerRadius) || (length + WaterCutoff > innerRadius * Shape.IslandFragmentation && length + WaterCutoff < outerRadius));

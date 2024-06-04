@@ -109,7 +109,7 @@ void UIslandDistrict::FillDistricts(TArray<int32>& DistrictRegions, UTriangleDua
 		{
 		}
 	};
-	DistrictRegions.Init(-1, Mesh->NumSolidRegions);
+	DistrictRegions.Init(-1, OceanRegions.Num());
 	TQueue<FRegionDistrict> Regions;
 	for (int32 DistrictIndex = 0; DistrictIndex < DistrictNum; ++DistrictIndex)
 	{

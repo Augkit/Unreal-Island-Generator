@@ -36,6 +36,8 @@ public:
 	int32 Bumps;
 	// The start angle for the sin function, in radians.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Angle")
+	bool bRandomStartAngle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Angle", meta = ( EditCondition = "!bRandomStartAngle" ))
 	float StartAngle;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Angle")
 	float AngleOffset;
@@ -48,5 +50,7 @@ public:
 	UIslandRadialWater();
 
 protected:
+	mutable float RandomStartAngle;
+	virtual void InitializeWater_Implementation(TArray<bool>& r_water, UTriangleDualMesh* Mesh, FRandomStream& Rng) const override;
 	virtual bool IsPointLand_Implementation(FPointIndex Point, UTriangleDualMesh* Mesh, const FVector2D& HalfMeshSize, const FVector2D& Offset, const FIslandShape& Shape) const override;
 };
