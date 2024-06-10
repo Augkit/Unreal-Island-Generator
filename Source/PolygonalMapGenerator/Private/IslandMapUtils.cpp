@@ -607,3 +607,52 @@ void UIslandMapUtils::TriangulateContour(const FAreaContour& Contour, TArray<FPo
 	}
 	UPolyPartitionHelper::Triangulate(Contour.Positions, Indices, Triangles);
 }
+
+bool UIslandMapUtils::PointInPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon)
+{
+	int Count = 0;
+	for (size_t i = 0, j = Polygon.Num() - 1; i < Polygon.Num(); j = i++)
+	{
+		if ((Polygon[i].Y > Point.Y) != (Polygon[j].Y > Point.Y) &&
+			(Point.X < (Polygon[j].X - Polygon[i].X) * (Point.Y - Polygon[i].Y) / (Polygon[j].Y - Polygon[i].Y) +
+				Polygon[i].X))
+		{
+			Count++;
+		}
+	}
+	return Count % 2 == 1;
+}
+
+double UIslandMapUtils::DistanceToEdge2D(const FVector2D& Point, const FVector2D& EdgePointA, const FVector2D& EdgePointB)
+{
+	double norm = FVector2D::Distance(EdgePointB, EdgePointA);
+	double u = ((Point.X - EdgePointA.X) * (EdgePointB.X - EdgePointA.X) + (Point.Y - EdgePointA.Y) * (EdgePointB.Y - EdgePointA.Y)) / (norm * norm);
+	FVector2D closest;
+	if (u < 0)
+	{
+		closest = EdgePointA;
+	}
+	else if (u > 1)
+	{
+		closest = EdgePointB;
+	}
+	else
+	{
+		closest = {EdgePointA.X + u * (EdgePointB.X - EdgePointA.X), EdgePointA.Y + u * (EdgePointB.Y - EdgePointA.Y)};
+	}
+	return FVector2D::Distance(Point, closest);
+}
+
+double UIslandMapUtils::DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon)
+{
+	if (PointInPolygon2D(Point, Polygon))
+	{
+		return 0;
+	}
+	double minDistance = std::numeric_limits<double>::max();
+	for (size_t i = 0, j = Polygon.Num() - 1; i < Polygon.Num(); j = i++)
+	{
+		minDistance = FMath::Min(minDistance, DistanceToEdge2D(Point, Polygon[i], Polygon[j]));
+	}
+	return minDistance;
+}

@@ -27,7 +27,6 @@
 #include "Biomes/IslandBiome.h"
 #include "District/IslandDistrict.h"
 #include "Elevation/IslandElevation.h"
-#include "Engine/CanvasRenderTarget2D.h"
 #include "Moisture/IslandMoisture.h"
 #include "Rivers/IslandRivers.h"
 #include "Water/IslandWater.h"

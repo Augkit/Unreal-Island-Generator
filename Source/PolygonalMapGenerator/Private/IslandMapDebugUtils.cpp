@@ -5,7 +5,65 @@
 
 #include "Coastline/IslandCoastline.h"
 #include "Engine/Canvas.h"
+#include "Engine/CanvasRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
+
+void UIslandMapDebugUtils::DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData)
+{
+	if (MapData == nullptr)
+		return;
+	UTriangleDualMesh* Mesh = MapData->Mesh;
+	if (Mesh == nullptr)
+		return;
+	Mesh->GetTriangleCentroids();
+	UCanvas* Canvas;
+	FVector2D Size;
+	FDrawToRenderTargetContext Context;
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(MapData->GetWorld(), RenderTarget2D, Canvas, Size,
+	                                                       Context);
+	if (Canvas == nullptr)
+		return;
+	const FVector2D Scale = Size / MapData->GetMapSize();
+
+	for (int32 PointIndex = 0; PointIndex < Mesh->NumSolidRegions; ++PointIndex)
+	{
+		const TArray<FTriangleIndex>& TriangleIndexs = Mesh->r_circulate_t(PointIndex);
+		TArray<FVector2D> TrianglePos;
+		TrianglePos.Empty(TriangleIndexs.Num());
+		for (const FTriangleIndex& TriangleIndex : TriangleIndexs)
+		{
+			TrianglePos.Add(Mesh->t_pos(TriangleIndex));
+		}
+		TArray<FCanvasUVTri> CanvasTris;
+		CanvasTris.Empty(TrianglePos.Num() - 2);
+		FVector2D FirstPos = TrianglePos[0];
+		FVector2D SecondPos = TrianglePos[1];
+		FLinearColor Color = FLinearColor(0.937, 0.647, 0.451);
+		if (MapData->IsPointWater(PointIndex))
+		{
+			Color = FLinearColor(0.94, 0.29, 0.612);
+			if (MapData->IsPointOcean(PointIndex))
+			{
+				Color = FLinearColor(0.341, 0.549, 0.898);
+			}
+		}
+		for (int32 i = 2; i < TrianglePos.Num(); i++)
+		{
+			const FVector2D& NextPos = TrianglePos[i % TrianglePos.Num()];
+			FCanvasUVTri Tri;
+			Tri.V0_Color = Color;
+			Tri.V1_Color = Color;
+			Tri.V2_Color = Color;
+			Tri.V0_Pos = FirstPos * Scale;
+			Tri.V1_Pos = SecondPos * Scale;
+			Tri.V2_Pos = NextPos * Scale;
+			CanvasTris.Add(Tri);
+			SecondPos = NextPos;
+		}
+		Canvas->K2_DrawTriangle(nullptr, CanvasTris);
+	}
+	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(MapData->GetWorld(), Context);
+}
 
 void UIslandMapDebugUtils::DrawRegion(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData)
 {
@@ -20,7 +78,7 @@ void UIslandMapDebugUtils::DrawRegion(UCanvasRenderTarget2D* RenderTarget2D, con
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(MapData->GetWorld(), RenderTarget2D, Canvas, Size,
 	                                                       Context);
-	if(Canvas == nullptr)
+	if (Canvas == nullptr)
 		return;
 	const FVector2D Scale = Size / MapData->GetMapSize();
 

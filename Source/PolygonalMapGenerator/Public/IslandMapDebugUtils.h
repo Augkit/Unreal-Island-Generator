@@ -13,6 +13,9 @@ class POLYGONALMAPGENERATOR_API UIslandMapDebugUtils : public UBlueprintFunction
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
+	static void DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
+
+	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
 	static void DrawRegion(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
 
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")

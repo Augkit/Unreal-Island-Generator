@@ -132,6 +132,7 @@
 // accompanying C++ automated test suite for examples of the usage of each
 // public member, and the test suite's HTML5 port for how these map to the
 // HTML5 canvas API.
+#pragma once
 
 #ifndef CANVAS_ITY_HPP
 #define CANVAS_ITY_HPP
