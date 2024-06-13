@@ -19,6 +19,10 @@ public:
 	static void Offset(TArray<FVector2D>& OutResult, const TArray<FVector2D>& Points, double Delta = 10,
 	                   double MiterLimit = 5);
 
+	static void Union(TArray<FVector2D>& OutResult, const TArray<FVector2D>& APoints, const TArray<FVector2D>& BPoints);
+
+	static void GetLongestPath(TArray<FVector2D>& OutResult, const Clipper2Lib::Paths64& Paths);
+	
 	template <typename RealType, typename OutputType>
 	static Clipper2Lib::Paths<OutputType> ConvertPolygonsToPaths(
 		const TArray<TArrayView<UE::Math::TVector2<RealType>>>& InPolygons,

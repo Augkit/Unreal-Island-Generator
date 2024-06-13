@@ -51,6 +51,17 @@ float UIslandMapUtils::FBMNoise(const TArray<float>& Amplitudes, const FVector2D
 	return sum / sumOfAmplitudes;
 }
 
+float UIslandMapUtils::Remap(float Value, ERemapType RemapType)
+{
+	switch (RemapType)
+	{
+	case ERemapType::RT_EaseInOutQuad:
+		return Value < 0.5 ? 2 * Value * Value : 1 - FMath::Pow(-2 * Value + 2, 2) / 2;
+	default:
+		return Value;
+	}
+}
+
 FBiomeData UIslandMapUtils::GetBiome(const UDataTable* BiomeData, bool bIsOcean, bool bIsWater, bool bIsCoast,
                                      float Temperature, float Moisture)
 {
@@ -623,10 +634,12 @@ bool UIslandMapUtils::PointInPolygon2D(const FVector2D& Point, const TArray<FVec
 	return Count % 2 == 1;
 }
 
-double UIslandMapUtils::DistanceToEdge2D(const FVector2D& Point, const FVector2D& EdgePointA, const FVector2D& EdgePointB)
+double UIslandMapUtils::DistanceToEdge2D(const FVector2D& Point, const FVector2D& EdgePointA,
+                                         const FVector2D& EdgePointB)
 {
 	double norm = FVector2D::Distance(EdgePointB, EdgePointA);
-	double u = ((Point.X - EdgePointA.X) * (EdgePointB.X - EdgePointA.X) + (Point.Y - EdgePointA.Y) * (EdgePointB.Y - EdgePointA.Y)) / (norm * norm);
+	double u = ((Point.X - EdgePointA.X) * (EdgePointB.X - EdgePointA.X) + (Point.Y - EdgePointA.Y) * (EdgePointB.Y -
+		EdgePointA.Y)) / (norm * norm);
 	FVector2D closest;
 	if (u < 0)
 	{

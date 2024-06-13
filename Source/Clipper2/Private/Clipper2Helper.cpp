@@ -15,14 +15,52 @@ void UClipper2Helper::Offset(TArray<FVector2D>& OutResult, const TArray<FVector2
 	ClipperOffset.MiterLimit(MiterLimit);
 	Clipper2Lib::Paths64 Paths;
 	ClipperOffset.Execute(Delta, Paths);
-	Paths = SimplifyPaths(Paths, 2.5);
-	Paths = Union(Paths, Clipper2Lib::FillRule::NonZero);
-	Clipper2Lib::Path64 Path = Paths.back();
+	// Paths = SimplifyPaths(Paths, 2.5);
+	// Paths = Clipper2Lib::Union(Paths, Clipper2Lib::FillRule::NonZero);
+	GetLongestPath(OutResult, Paths);
+}
 
-	OutResult.Empty(Path.size());
-	for (const Clipper2Lib::Point64& Point : Path)
+void UClipper2Helper::Union(TArray<FVector2D>& OutResult, const TArray<FVector2D>& APoints,
+	const TArray<FVector2D>& BPoints)
+{
+	Clipper2Lib::Path64 ASubject = MakePath<int64_t>(APoints);
+	Clipper2Lib::Path64 BSubject = MakePath<int64_t>(BPoints);
+	Clipper2Lib::Paths64 Paths;
+	Paths.push_back(ASubject);
+	Paths.push_back(BSubject);
+	Paths = Clipper2Lib::Union(Paths, Clipper2Lib::FillRule::NonZero);
+	GetLongestPath(OutResult, Paths);
+}
+
+void UClipper2Helper::GetLongestPath(TArray<FVector2D>& OutResult, const Clipper2Lib::Paths64& Paths)
+{
+	int32 PathsSize = Paths.size();
+	const Clipper2Lib::Path64* PathPtr = nullptr;
+	OutResult.Empty(PathsSize);
+	if (PathsSize < 0)
 	{
-		OutResult.Add(FVector2D(Point.x, Point.y));
+		return;
+	}
+	if (PathsSize == 1)
+	{
+		PathPtr = &Paths[0];
+	}
+	else
+	{
+		int32 MaxLengthPathSize = 0;
+		for (int32 Index = 0; Index < PathsSize; ++Index)
+		{
+			if (Paths[Index].size() > MaxLengthPathSize)
+			{
+				MaxLengthPathSize = Paths[Index].size();
+				PathPtr = &Paths[Index];
+			}
+		}
+	}
+	int32 PathSize = PathPtr->size();
+	for(int32 Index = 0; Index < PathSize; ++ Index)
+	{
+		OutResult.Add(FVector2D((*PathPtr)[Index].x, (*PathPtr)[Index].y));
 	}
 }
 

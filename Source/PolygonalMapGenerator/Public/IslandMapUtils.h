@@ -29,6 +29,13 @@
 
 #include "IslandMapUtils.generated.h"
 
+UENUM(BlueprintType)
+enum class ERemapType : uint8
+{
+	RT_EaseInOutQuad UMETA(DisplayName="Ease In Out Sine"),
+	RT_Linear UMETA(DisplayName="Linear"),
+};
+
 USTRUCT(BlueprintType)
 struct POLYGONALMAPGENERATOR_API FIslandShape
 {
@@ -222,6 +229,9 @@ public:
 	static void RandomShuffle(TArray<FTriangleIndex>& OutShuffledArray, UPARAM(ref) FRandomStream& Rng);
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Utils")
 	static float FBMNoise(const TArray<float>& Amplitudes, const FVector2D& Position);
+
+	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Utils")
+	static float Remap(float Value, ERemapType RemapType);
 
 	// Given a BiomeData table and a collection of data about a point, returns a biome.
 	// Note that the given FName is TECHNICALLY a GameplayTag.
