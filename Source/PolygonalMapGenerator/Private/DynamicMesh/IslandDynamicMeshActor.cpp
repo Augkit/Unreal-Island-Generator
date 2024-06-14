@@ -444,11 +444,11 @@ void AIslandDynamicMeshActor::GenerateMeshDelaunator(UDynamicMesh* DynamicMesh)
 	FGeometryScriptIndexList TriangleIndices;
 	UGeometryScriptLibrary_MeshBasicEditFunctions::AppendBuffersToMesh(DynamicMesh, Buffers, TriangleIndices);
 
-	// UGeometryScriptLibrary_MeshSubdivideFunctions::ApplyPNTessellation(
-	// 	DynamicMesh,
-	// 	FGeometryScriptPNTessellateOptions(),
-	// 	TessellationLevel
-	// );
+	UGeometryScriptLibrary_MeshSubdivideFunctions::ApplyPNTessellation(
+		DynamicMesh,
+		FGeometryScriptPNTessellateOptions(),
+		TessellationLevel
+	);
 
 	FVector2D VerticesBias = -FVector2D(MapSize / 2);
 	DynamicMesh->EditMesh([&](FDynamicMesh3& EditMesh)
