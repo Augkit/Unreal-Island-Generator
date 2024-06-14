@@ -55,6 +55,16 @@ float UIslandMapUtils::Remap(float Value, ERemapType RemapType)
 {
 	switch (RemapType)
 	{
+	case ERemapType::RT_EaseInSine:
+		return 1 - FMath::Cos(Value * PI / 2);
+	case ERemapType::RT_EaseOutSine:
+		return FMath::Sin(Value * PI / 2);
+	case ERemapType::RT_EaseInOutSine:
+		return -FMath::Cos(Value * PI - 1) / 2;
+	case ERemapType::RT_EaseInQuad:
+		return Value * Value;
+	case ERemapType::RT_EaseOutQuad:
+		return 1 - (1 - Value) * (1 - Value);
 	case ERemapType::RT_EaseInOutQuad:
 		return Value < 0.5 ? 2 * Value * Value : 1 - FMath::Pow(-2 * Value + 2, 2) / 2;
 	default:

@@ -32,8 +32,13 @@
 UENUM(BlueprintType)
 enum class ERemapType : uint8
 {
-	RT_EaseInOutQuad UMETA(DisplayName="Ease In Out Sine"),
 	RT_Linear UMETA(DisplayName="Linear"),
+	RT_EaseInSine  UMETA(DisplayName="Ease In Sine"),
+	RT_EaseOutSine  UMETA(DisplayName="Ease Out Sine"),
+	RT_EaseInOutSine  UMETA(DisplayName="Ease In Out Sine"),
+	RT_EaseInQuad UMETA(DisplayName="Ease In Quad"),
+	RT_EaseOutQuad UMETA(DisplayName="Ease Out Quad"),
+	RT_EaseInOutQuad UMETA(DisplayName="Ease In Out Quad"),
 };
 
 USTRUCT(BlueprintType)
@@ -230,6 +235,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Utils")
 	static float FBMNoise(const TArray<float>& Amplitudes, const FVector2D& Position);
 
+	/**
+	 * Remap value [0 - 1] to different curves.
+	 * Please refer to https://easings.net/.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Procedural Generation|Island Generation|Utils")
 	static float Remap(float Value, ERemapType RemapType);
 

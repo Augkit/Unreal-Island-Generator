@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DynamicMeshActor.h"
+#include "GeometryScript/CollisionFunctions.h"
 #include "IslandDynamicMeshActorBase.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("Island Dynamic Mesh"), STATGROUP_IslandDynamicMesh, STATCAT_Advanced);
@@ -23,6 +24,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
 	UMaterial* IslandMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generate Mesh")
+	bool bGenerateCollision = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generate Mesh", meta = ( EditCondition = "bGenerateCollision" ))
+	FGeometryScriptCollisionFromMeshOptions GenerateCollisionOptions;
+
 	UFUNCTION(BlueprintCallable)
 	void SetMapData(UIslandMapData* InMapData);
 
@@ -34,6 +40,6 @@ public:
 
 protected:
 	virtual void GenerateIslandTexture();
-	virtual void GenerateIslandMesh();
+	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh);
 	virtual void SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance);
 };

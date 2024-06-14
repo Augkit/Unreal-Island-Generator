@@ -26,10 +26,14 @@ void AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
 		SCOPE_CYCLE_COUNTER(STAT_GenerateIslandTexture)
 		GenerateIslandTexture();
 	}
+	UDynamicMesh* DynamicMesh = DynamicMeshComponent->GetDynamicMesh();
 	{
 		SCOPE_CYCLE_COUNTER(STAT_GenerateDynamicMesh)
-		GenerateIslandMesh();
+		GenerateIslandMesh(DynamicMesh);
 	}
+	if (bGenerateCollision)
+		UGeometryScriptLibrary_CollisionFunctions::SetDynamicMeshCollisionFromMesh(
+			DynamicMesh, DynamicMeshComponent, GenerateCollisionOptions);
 	if (!IsValid(IslandMaterial))
 	{
 		return;
@@ -39,12 +43,12 @@ void AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
 	GetDynamicMeshComponent()->SetMaterial(0, MaterialInstance);
 }
 
-void AIslandDynamicMeshActorBase::GenerateIslandMesh()
+void AIslandDynamicMeshActorBase::GenerateIslandTexture()
 {
 	// Empty
 }
 
-void AIslandDynamicMeshActorBase::GenerateIslandTexture()
+void AIslandDynamicMeshActorBase::GenerateIslandMesh(UDynamicMesh* DynamicMesh)
 {
 	// Empty
 }

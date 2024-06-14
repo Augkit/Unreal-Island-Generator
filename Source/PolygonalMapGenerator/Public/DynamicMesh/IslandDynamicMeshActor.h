@@ -58,7 +58,7 @@ public:
 			"GenerateMeshMethod == EGenerateMeshType::GMT_Delaunator || GenerateMeshMethod == EGenerateMeshType::GMT_PixelMesh"
 		)
 	)
-	ERemapType BorderDepthRemapMethod = ERemapType::RT_Linear;
+	ERemapType BorderDepthRemapMethod = ERemapType::RT_EaseOutSine;
 
 	UPROPERTY(
 		EditAnywhere, BlueprintReadWrite, Category = "Generate Mesh|Border",
@@ -89,15 +89,16 @@ public:
 	int32 BorderTessellationStartStep = 4;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generate Mesh",
+		meta = ( EditCondition = "GenerateMeshMethod == EGenerateMeshType::GMT_Voxelization" ))
+	FGeometryScriptSolidifyOptions SolidifyOptions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generate Mesh",
 		meta = (
 			ClampMin = 0, EditCondition =
 			"GenerateMeshMethod == EGenerateMeshType::GMT_Delaunator || GenerateMeshMethod == EGenerateMeshType::GMT_Voxelization"
 		)
 	)
 	int32 TessellationLevel = 1;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FGeometryScriptSolidifyOptions SolidifyOptions;
 
 	UPROPERTY(BlueprintReadOnly)
 	UTexture2D* DistrictIDTexture01;
@@ -106,7 +107,7 @@ public:
 
 protected:
 	virtual void GenerateIslandTexture() override;
-	virtual void GenerateIslandMesh() override;
+	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh) override;
 	virtual void GenerateMeshDelaunator(UDynamicMesh* DynamicMesh);
 	virtual void GenerateMeshVoxelization(UDynamicMesh* DynamicMesh);
 	virtual void GenerateMeshPixel(UDynamicMesh* DynamicMesh);

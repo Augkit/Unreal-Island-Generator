@@ -221,13 +221,12 @@ void AIslandDynamicMeshActor::GenerateIslandTexture()
 	}
 }
 
-void AIslandDynamicMeshActor::GenerateIslandMesh()
+void AIslandDynamicMeshActor::GenerateIslandMesh(UDynamicMesh* DynamicMesh)
 {
 	if (!IsValid(MapData))
 	{
 		return;
 	}
-	UDynamicMesh* DynamicMesh = GetDynamicMeshComponent()->GetDynamicMesh();
 	switch (GenerateMeshMethod)
 	{
 	case EGenerateMeshType::GMT_Delaunator:
