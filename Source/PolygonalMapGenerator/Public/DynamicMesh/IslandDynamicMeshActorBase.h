@@ -30,16 +30,21 @@ public:
 	FGeometryScriptCollisionFromMeshOptions GenerateCollisionOptions;
 
 	UFUNCTION(BlueprintCallable)
-	void SetMapData(UIslandMapData* InMapData);
+	UIslandMapData* SetMapData(UIslandMapData* InMapData);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UIslandMapData* GetMapData();
 
-	UFUNCTION(BlueprintCallable)
-	virtual void GenerateIsland(UIslandMapData* InMapData);
+	UFUNCTION(BlueprintCallable, Category = "Generate Mesh")
+	virtual bool GenerateIsland(UIslandMapData* InMapData);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Generate Mesh")
+	void PostGenerateIsland(bool bSucceed);
 
 protected:
 	virtual void GenerateIslandTexture();
 	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh);
 	virtual void SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance);
+
+	virtual void PostGenerateIsland_Implementation(bool bSucceed);
 };

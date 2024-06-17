@@ -5,9 +5,10 @@
 
 struct FCoastlinePolygon;
 
-void AIslandDynamicMeshActorBase::SetMapData(UIslandMapData* InMapData)
+UIslandMapData* AIslandDynamicMeshActorBase::SetMapData(UIslandMapData* InMapData)
 {
 	MapData = InMapData;
+	return MapData;
 }
 
 UIslandMapData* AIslandDynamicMeshActorBase::GetMapData()
@@ -15,13 +16,15 @@ UIslandMapData* AIslandDynamicMeshActorBase::GetMapData()
 	return MapData;
 }
 
-void AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
+bool AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
 {
 	if (InMapData != nullptr)
 		SetMapData(InMapData);
 	if (MapData == nullptr)
-		return;
-
+	{
+		PostGenerateIsland(false);
+		return false;
+	}
 	{
 		SCOPE_CYCLE_COUNTER(STAT_GenerateIslandTexture)
 		GenerateIslandTexture();
@@ -34,13 +37,19 @@ void AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
 	if (bGenerateCollision)
 		UGeometryScriptLibrary_CollisionFunctions::SetDynamicMeshCollisionFromMesh(
 			DynamicMesh, DynamicMeshComponent, GenerateCollisionOptions);
-	if (!IsValid(IslandMaterial))
+	if (IsValid(IslandMaterial))
 	{
-		return;
+		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(IslandMaterial, this);
+		SetMaterialParameters(MaterialInstance);
+		GetDynamicMeshComponent()->SetMaterial(0, MaterialInstance);
 	}
-	UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(IslandMaterial, this);
-	SetMaterialParameters(MaterialInstance);
-	GetDynamicMeshComponent()->SetMaterial(0, MaterialInstance);
+	PostGenerateIsland(true);
+	return true;
+}
+
+void AIslandDynamicMeshActorBase::PostGenerateIsland_Implementation(bool bSucceed)
+{
+	// Empty
 }
 
 void AIslandDynamicMeshActorBase::GenerateIslandTexture()
