@@ -666,11 +666,14 @@ double UIslandMapUtils::DistanceToEdge2D(const FVector2D& Point, const FVector2D
 	return FVector2D::Distance(Point, closest);
 }
 
-double UIslandMapUtils::DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon)
+double UIslandMapUtils::DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon, bool bZeroIfInner)
 {
-	if (PointInPolygon2D(Point, Polygon))
+	if (bZeroIfInner)
 	{
-		return 0;
+		if (PointInPolygon2D(Point, Polygon))
+		{
+			return 0;
+		}
 	}
 	double minDistance = std::numeric_limits<double>::max();
 	for (size_t i = 0, j = Polygon.Num() - 1; i < Polygon.Num(); j = i++)

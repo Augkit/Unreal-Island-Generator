@@ -281,5 +281,5 @@ public:
 
 	static bool PointInPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon);
 	static double DistanceToEdge2D(const FVector2D& Point, const FVector2D& EdgePointA, const FVector2D& EdgePointB);
-	static double DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon);
+	static double DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon, bool bZeroIfInner = true);
 };

@@ -467,9 +467,9 @@ void AIslandDynamicMeshActor::GenerateMeshDelaunator(UDynamicMesh* DynamicMesh, 
 					break;
 				MinDistance = FMath::Min(MinDistance, UIslandMapUtils::DistanceToPolygon2D(Point, CoastLine.Positions));
 			}
-			if (!bPointInPolygon2D && MinDistance <= BorderOffset)
+			if (!bPointInPolygon2D)
 			{
-				float UnitDepth = (BorderOffset - MinDistance) / BorderOffset;
+				float UnitDepth = FMath::Clamp((BorderOffset - MinDistance) / BorderOffset, 0, 1);
 				UnitDepth = UIslandMapUtils::Remap(UnitDepth, BorderDepthRemapMethod);
 				Position.Z += (UnitDepth - 1) * BorderDepth;
 			}
