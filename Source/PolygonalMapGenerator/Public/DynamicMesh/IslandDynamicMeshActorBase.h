@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "DynamicMeshActor.h"
 #include "GeometryScript/CollisionFunctions.h"
+#include "IslandMapData.h"
 #include "IslandDynamicMeshActorBase.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("Island Dynamic Mesh"), STATGROUP_IslandDynamicMesh, STATCAT_Advanced);
@@ -36,14 +37,14 @@ public:
 	UIslandMapData* GetMapData();
 
 	UFUNCTION(BlueprintCallable, Category = "Generate Mesh")
-	virtual bool GenerateIsland(UIslandMapData* InMapData);
+	virtual bool GenerateIsland(UIslandMapData* InMapData, const FTransform& Transform);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Generate Mesh")
 	void PostGenerateIsland(bool bSucceed);
 
 protected:
 	virtual void GenerateIslandTexture();
-	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh);
+	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh, const FTransform& Transform);
 	virtual void SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance);
 
 	virtual void PostGenerateIsland_Implementation(bool bSucceed);

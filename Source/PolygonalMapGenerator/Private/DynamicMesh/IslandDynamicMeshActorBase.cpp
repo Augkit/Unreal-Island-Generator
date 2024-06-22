@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "DynamicMesh/IslandDynamicMeshActorBase.h"
 
 struct FCoastlinePolygon;
@@ -16,7 +15,7 @@ UIslandMapData* AIslandDynamicMeshActorBase::GetMapData()
 	return MapData;
 }
 
-bool AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
+bool AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData, const FTransform& Transform)
 {
 	if (InMapData != nullptr)
 		SetMapData(InMapData);
@@ -32,7 +31,7 @@ bool AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData)
 	UDynamicMesh* DynamicMesh = DynamicMeshComponent->GetDynamicMesh();
 	{
 		SCOPE_CYCLE_COUNTER(STAT_GenerateDynamicMesh)
-		GenerateIslandMesh(DynamicMesh);
+		GenerateIslandMesh(DynamicMesh, Transform);
 	}
 	if (bGenerateCollision)
 		UGeometryScriptLibrary_CollisionFunctions::SetDynamicMeshCollisionFromMesh(
@@ -57,7 +56,7 @@ void AIslandDynamicMeshActorBase::GenerateIslandTexture()
 	// Empty
 }
 
-void AIslandDynamicMeshActorBase::GenerateIslandMesh(UDynamicMesh* DynamicMesh)
+void AIslandDynamicMeshActorBase::GenerateIslandMesh(UDynamicMesh* DynamicMesh, const FTransform& Transform)
 {
 	// Empty
 }

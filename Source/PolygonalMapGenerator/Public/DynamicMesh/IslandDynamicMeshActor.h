@@ -107,10 +107,10 @@ public:
 
 protected:
 	virtual void GenerateIslandTexture() override;
-	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh) override;
-	virtual void GenerateMeshDelaunator(UDynamicMesh* DynamicMesh);
-	virtual void GenerateMeshVoxelization(UDynamicMesh* DynamicMesh);
-	virtual void GenerateMeshPixel(UDynamicMesh* DynamicMesh);
+	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh, const FTransform& Transform) override;
+	virtual void GenerateMeshDelaunator(UDynamicMesh* DynamicMesh, const FTransform& Transform);
+	virtual void GenerateMeshVoxelization(UDynamicMesh* DynamicMesh, const FTransform& Transform);
+	virtual void GenerateMeshPixel(UDynamicMesh* DynamicMesh, const FTransform& Transform);
 
 	virtual void SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance) override;
 
