@@ -281,13 +281,15 @@ void UIslandMapData::GenerateIsland_Implementation()
 	IslandCoastline = NewObject<UIslandCoastline>();
 	IslandCoastline->Initialize(Mesh, r_ocean, r_coast);
 
+	GenerateIslandQuadTree();
+
 	// Do whatever we need to do when the island generation is done
 	OnIslandGenerationComplete.Broadcast();
 }
 
 FVector2D UIslandMapData::GetMapSize() const
 {
-	if(Mesh == nullptr)
+	if (Mesh == nullptr)
 		return FVector2D::ZeroVector;
 	return Mesh->GetSize();
 }
@@ -457,6 +459,11 @@ const TArray<FDistrictRegion>& UIslandMapData::GetDistrictRegions() const
 	return DistrictRegions;
 }
 
+const TArray<TSharedPtr<FIslandQuadTreeNode>>& UIslandMapData::GetQuadIslandAreas() const
+{
+	return QuadAreas;
+}
+
 TArray<int32>& UIslandMapData::GetTriangleCoastDistances()
 {
 	return t_coastdistance;
@@ -524,4 +531,62 @@ bool UIslandMapData::IsTriangleRiver(FTriangleIndex Triangle) const
 const TArray<FCoastlinePolygon>& UIslandMapData::GetCoastLines() const
 {
 	return IslandCoastline->GetCoastlines();
+}
+
+void UIslandMapData::GenerateIslandQuadTree()
+{
+	int32 QuadTreeDivide = 8;
+	FVector2D MapSize = GetMapSize();
+	QuadTreeRoot = MakeShared<FIslandQuadTreeNode>(FVector2D::Zero(), MapSize, 0);
+	QuadTreeRoot->bCoverCoastline = true;
+	TArray<TSharedPtr<FIslandQuadTreeNode>> NodeStack;
+	NodeStack.Emplace(QuadTreeRoot);
+	QuadAreas.Empty();
+	bool LeftBottomCovered = false;
+	bool RightBottomCovered = false;
+	bool LeftTopCovered = false;
+	bool RightTopCovered = false;
+	bool CenterCovered = true;
+	while (!NodeStack.IsEmpty())
+	{
+		TSharedPtr<FIslandQuadTreeNode> Node = NodeStack.Pop();
+
+		for (const FCoastlinePolygon& CoastLine : IslandCoastline->GetCoastlines())
+		{
+			bool CoveredCoastLine = UIslandMapUtils::PointInPolygon2D(Node->LeftBottom, CoastLine.Positions);
+			if (UIslandMapUtils::PointInPolygon2D(Node->RightBottom, CoastLine.Positions) != CoveredCoastLine)
+			{
+				Node->bCoverCoastline = true;
+				break;
+			}
+			if (UIslandMapUtils::PointInPolygon2D(Node->LeftTop, CoastLine.Positions) != CoveredCoastLine)
+			{
+				Node->bCoverCoastline = true;
+				break;
+			}
+			if (UIslandMapUtils::PointInPolygon2D(Node->RightTop, CoastLine.Positions) != CoveredCoastLine)
+			{
+				Node->bCoverCoastline = true;
+				break;
+			}
+		}
+		if (!Node->bCoverCoastline || Node->Level == QuadTreeDivide)
+		{
+			QuadAreas.Emplace(Node);
+		}
+		if (Node == QuadTreeRoot || (Node->bCoverCoastline && Node->Level < QuadTreeDivide))
+		{
+			int32 Level = Node->Level + 1;
+			Node->Children[0] = MakeShareable(new FIslandQuadTreeNode(Node->LeftBottom, Node->Center, Level));
+			Node->Children[1] = MakeShareable(new FIslandQuadTreeNode(
+				FVector2D(Node->LeftBottom.X, Node->Center.Y), FVector2D(Node->Center.X, Node->RightTop.Y), Level));
+			Node->Children[2] = MakeShareable(new FIslandQuadTreeNode(Node->Center, Node->RightTop, Level));
+			Node->Children[3] = MakeShareable(new FIslandQuadTreeNode(
+				FVector2D(Node->Center.X, Node->LeftBottom.Y), FVector2D(Node->RightTop.X, Node->Center.Y), Level));
+			NodeStack.Emplace(Node->Children[0]);
+			NodeStack.Emplace(Node->Children[1]);
+			NodeStack.Emplace(Node->Children[2]);
+			NodeStack.Emplace(Node->Children[3]);
+		}
+	}
 }

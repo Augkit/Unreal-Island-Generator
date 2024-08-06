@@ -441,7 +441,10 @@ void AIslandDynamicMeshActor::GenerateMeshDelaunator(UDynamicMesh* DynamicMesh, 
 		}
 	}
 	FGeometryScriptIndexList TriangleIndices;
-	UGeometryScriptLibrary_MeshBasicEditFunctions::AppendBuffersToMesh(DynamicMesh, Buffers, TriangleIndices);
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::AppendBuffersToMesh);
+		UGeometryScriptLibrary_MeshBasicEditFunctions::AppendBuffersToMesh(DynamicMesh, Buffers, TriangleIndices);
+	}
 
 	UGeometryScriptLibrary_MeshSubdivideFunctions::ApplyPNTessellation(
 		DynamicMesh,
@@ -607,6 +610,7 @@ void AIslandDynamicMeshActor::GenerateMeshPixel(UDynamicMesh* DynamicMesh, const
 		       MeshPixelWidth, MeshPixelHeight);
 		return;
 	}
+	TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::GenerateMeshPixel);
 	FVector2D MapSize = MapData->GetMapSize();
 	FGeometryScriptPrimitiveOptions PrimitiveOptions;
 	UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendRectangleXY(
@@ -614,7 +618,7 @@ void AIslandDynamicMeshActor::GenerateMeshPixel(UDynamicMesh* DynamicMesh, const
 		MapSize.X, MapSize.Y, FMath::Max<int32>(MapSize.X / MeshPixelWidth, 1),
 		FMath::Max<int32>(MapSize.Y / MeshPixelHeight, 1)
 	);
-
+	TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::EditMesh);
 	FVector2D HalfMapSize = MapSize / 2;
 	DynamicMesh->EditMesh([&](FDynamicMesh3& EditMesh)
 	{
@@ -639,11 +643,11 @@ void AIslandDynamicMeshActor::GenerateMeshPixel(UDynamicMesh* DynamicMesh, const
 				float UnitDepth = (BorderOffset - MinDistance) / BorderOffset;
 				UnitDepth = UIslandMapUtils::Remap(UnitDepth, BorderDepthRemapMethod);
 				Position.Z += (UnitDepth - 1) * BorderDepth;
-				EditMesh.SetVertex(Index, Position);
+				EditMesh.SetVertex(Index, Position, false);
 			}
 		}
 	}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, false);
-
+	TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::SetPerVertexNormals);
 	UGeometryScriptLibrary_MeshNormalsFunctions::SetPerVertexNormals(DynamicMesh);
 }
 

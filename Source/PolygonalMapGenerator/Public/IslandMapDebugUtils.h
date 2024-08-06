@@ -26,4 +26,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
 	static void DrawDistrict(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
+
+	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
+	static void DrawQuadTree(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData, float Opacity = 1.0f);
 };

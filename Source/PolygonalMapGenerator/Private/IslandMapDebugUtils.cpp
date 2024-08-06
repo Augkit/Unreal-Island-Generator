@@ -236,3 +236,43 @@ void UIslandMapDebugUtils::DrawDistrict(UCanvasRenderTarget2D* RenderTarget2D, c
 
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(MapData->GetWorld(), Context);
 }
+
+void UIslandMapDebugUtils::DrawQuadTree(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData,
+	float Opacity)
+{
+	if (MapData == nullptr)
+		return;
+
+	UCanvas* Canvas;
+	FVector2D Size;
+	FDrawToRenderTargetContext Context;
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(MapData->GetWorld(), RenderTarget2D, Canvas, Size,
+														   Context);
+
+	const FVector2D Scale = Size / MapData->GetMapSize();
+	TArray<FCanvasUVTri> CanvasTris;
+	for (const TSharedPtr<FIslandQuadTreeNode>& Area : MapData->GetQuadIslandAreas())
+	{
+		if(!Area->bCoverCoastline)
+		{
+			continue;
+		}
+		FLinearColor Color = FLinearColor::MakeRandomSeededColor(Area->Level);
+		Color.A = Opacity;
+		FCanvasUVTri CanvasTri;
+		CanvasTri.V0_Color = Color;
+		CanvasTri.V1_Color = Color;
+		CanvasTri.V2_Color = Color;
+		CanvasTri.V0_Pos = Area->LeftBottom * Scale;
+		CanvasTri.V1_Pos = Area->RightBottom * Scale;
+		CanvasTri.V2_Pos = Area->RightTop * Scale;
+		CanvasTris.Add(CanvasTri);
+		CanvasTri.V0_Pos = Area->LeftBottom * Scale;
+		CanvasTri.V1_Pos = Area->RightTop * Scale;
+		CanvasTri.V2_Pos = Area->LeftTop * Scale;
+		CanvasTris.Add(CanvasTri);
+	}
+	Canvas->K2_DrawTriangle(nullptr, CanvasTris);
+
+	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(MapData->GetWorld(), Context);
+}

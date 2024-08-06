@@ -24,13 +24,14 @@ bool AIslandDynamicMeshActorBase::GenerateIsland(UIslandMapData* InMapData, cons
 		PostGenerateIsland(false);
 		return false;
 	}
+	TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::GenerateIsland);
 	{
-		SCOPE_CYCLE_COUNTER(STAT_GenerateIslandTexture)
+		TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::GenerateIslandTexture);
 		GenerateIslandTexture();
 	}
 	UDynamicMesh* DynamicMesh = DynamicMeshComponent->GetDynamicMesh();
 	{
-		SCOPE_CYCLE_COUNTER(STAT_GenerateDynamicMesh)
+		TRACE_CPUPROFILER_EVENT_SCOPE(IslandDynamicMeshActor::GenerateIslandMesh);
 		GenerateIslandMesh(DynamicMesh, Transform);
 	}
 	if (bGenerateCollision)

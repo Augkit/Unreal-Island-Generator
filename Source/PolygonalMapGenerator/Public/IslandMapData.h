@@ -33,6 +33,109 @@
 
 #include "IslandMapData.generated.h"
 
+USTRUCT()
+struct FIslandQuadTreeNode
+{
+	GENERATED_BODY()
+	FIslandQuadTreeNode()
+	{
+	}
+
+	FIslandQuadTreeNode(const double& InLeft, const double& InRight, const double& InTop, const double& InBottom,
+	                    const int32& InLevel):
+		Left(InLeft), Right(InRight), Top(InTop), Bottom(InBottom), Level(InLevel)
+	{
+		Center = FVector2D(Right - Left, Top - Bottom) * 0.5f;
+	}
+
+	FIslandQuadTreeNode(const FVector2D& Min, const FVector2D& Max, const int32 InLevel): Level(InLevel)
+	{
+		LeftBottom = Min;
+		RightBottom = FVector2D(Max.X, Min.Y);
+		LeftTop = FVector2D(Min.X, Max.Y);
+		RightTop = Max;
+		Center = (Min + Max) * 0.5f;
+	}
+
+	FIslandQuadTreeNode(const TWeakPtr<FIslandQuadTreeNode>& InParent, const int32 Pos): Parent(InParent),
+		PosInParent(Pos)
+	{
+		const FIslandQuadTreeNode* ParentPtr = InParent.Pin().Get();
+		Level = ParentPtr->Level + 1;
+		switch (PosInParent)
+		{
+		case 0: // 0 = left-bottom
+			Left = ParentPtr->Left;
+			Right = ParentPtr->Center.X;
+			Top = ParentPtr->Center.Y;
+			Bottom = ParentPtr->Bottom;
+			bLeftBottomCovered = ParentPtr->bLeftBottomCovered;
+			bRightTopCovered = ParentPtr->bCenterCovered;
+			break;
+		}
+		// switch (PosInParent)
+		// {
+		// case 0: // 0 = left-bottom
+		// 	LeftBottom = ParentPtr->LeftBottom;
+		// 	RightBottom = FVector2D(ParentPtr->Center.X, ParentPtr->LeftBottom.Y);
+		// 	RightTop = ParentPtr->Center;
+		// 	LeftTop = FVector2D(ParentPtr->LeftBottom.X, ParentPtr->Center.Y);
+		// 	bLeftBottomCovered = ParentPtr->bLeftBottomCovered;
+		// 	bRightTopCovered = ParentPtr->bCenterCovered;
+		// 	break;
+		// case 1: // 1 = right-bottom
+		// 	LeftBottom = FVector2D(ParentPtr->Center.X, ParentPtr->LeftBottom.Y);
+		// 	RightBottom = ParentPtr->RightBottom;
+		// 	RightTop = FVector2D(ParentPtr->RightBottom.X, ParentPtr->Center.Y);
+		// 	LeftTop = ParentPtr->Center;
+		// 	bLeftBottomCovered = ParentPtr->bCenterCovered;
+		// 	bRightTopCovered = ParentPtr->bRightBottomCovered;
+		// 	break;
+		// case 2: // 2 = right-top
+		// 	LeftBottom = ParentPtr->Center;
+		// 	RightBottom = FVector2D(ParentPtr->RightTop.X, ParentPtr->Center.Y);
+		// 	RightTop = ParentPtr->RightTop;
+		// 	LeftTop = FVector2D(ParentPtr->Center.X, ParentPtr->RightTop.Y);
+		// 	bLeftBottomCovered = ParentPtr->bCenterCovered;
+		// 	bRightTopCovered = ParentPtr->bRightTopCovered;
+		// 	break;
+		// case 3: // 3 = left-top
+		// 	LeftBottom = FVector2D(ParentPtr->LeftTop.X, ParentPtr->Center.Y);
+		// 	RightBottom = ParentPtr->Center;
+		// 	RightTop = FVector2D(ParentPtr->Center.X, ParentPtr->RightTop.Y);
+		// 	LeftTop = ParentPtr->LeftTop;
+		// 	bLeftBottomCovered = ParentPtr->bLeftTopCovered;
+		// 	bRightTopCovered = ParentPtr->bCenterCovered;
+		// 	break;
+		// }
+		// Center = (RightTop - LeftBottom) / 2.0f;
+	}
+
+	TWeakPtr<FIslandQuadTreeNode> Parent = nullptr;
+	int32 Level;
+	/** 0 = left-bottom, 1 = right-bottom, 2 = right-top, 3 = left-top */
+	int32 PosInParent = 0;
+
+	TSharedPtr<FIslandQuadTreeNode> Children[4]{nullptr, nullptr, nullptr, nullptr};
+
+	double Left = 0.0;
+	double Bottom = 0.0;
+	double Right = 0.0;
+	double Top = 0.0;
+
+	FVector2D LeftBottom;
+	FVector2D RightBottom;
+	FVector2D RightTop;
+	FVector2D LeftTop;
+	FVector2D Center;
+	bool bLeftBottomCovered = false;
+	bool bRightBottomCovered = false;
+	bool bRightTopCovered = false;
+	bool bLeftTopCovered = false;
+	bool bCenterCovered = false;
+	bool bCoverCoastline = false;
+};
+
 UCLASS(BlueprintType, Blueprintable)
 class POLYGONALMAPGENERATOR_API UIslandMapData : public UObject
 {
@@ -146,6 +249,8 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<URiver*> CreatedRivers;
 
+	TSharedPtr<FIslandQuadTreeNode> QuadTreeRoot;
+	TArray<TSharedPtr<FIslandQuadTreeNode>> QuadAreas;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandPointGenerationComplete;
@@ -238,6 +343,8 @@ public:
 
 	const TArray<FDistrictRegion>& GetDistrictRegions() const;
 
+	const TArray<TSharedPtr<FIslandQuadTreeNode>>& GetQuadIslandAreas() const;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
 	TArray<int32>& GetTriangleCoastDistances();
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Ocean")
@@ -261,4 +368,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	const TArray<FCoastlinePolygon>& GetCoastLines() const;
+
+	UFUNCTION(BlueprintCallable)
+	void GenerateIslandQuadTree();
 };
