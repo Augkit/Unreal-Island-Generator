@@ -110,11 +110,6 @@ void UIslandMapData::GenerateIsland_Implementation()
 		return;
 	}
 	FDateTime startTime;
-#if !UE_BUILD_SHIPPING
-	startTime = FDateTime::UtcNow();
-	LastRegenerationTime = startTime;
-#endif
-
 	if (bDetermineRandomSeedAtRuntime)
 	{
 		startTime = FDateTime::UtcNow();
@@ -145,23 +140,9 @@ void UIslandMapData::GenerateIsland_Implementation()
 		Shape.Amplitudes[i] = FMath::Pow(Persistence, i);
 	}
 
-#if !UE_BUILD_SHIPPING
-	FDateTime finishedTime = FDateTime::UtcNow();
-	FTimespan difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Initialization took %f seconds."), difference.GetTotalSeconds());
-#endif
-
 	// Generate map points
 	Mesh = PointGenerator->GenerateDualMesh(Rng);
 	OnIslandPointGenerationComplete.Broadcast();
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generating points took %f seconds."), difference.GetTotalSeconds());
-#endif
 
 	// Reset all arrays
 	CreatedRivers.Empty(NumRivers);
@@ -197,97 +178,73 @@ void UIslandMapData::GenerateIsland_Implementation()
 	r_biome.Empty(Mesh->NumRegions);
 	r_biome.SetNumZeroed(Mesh->NumRegions);
 
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Resetting arrays took %f seconds."), difference.GetTotalSeconds());
-#endif
-
 	// Water
-	Water->assign_r_water(r_water, Rng, Mesh, Shape);
-	Water->assign_r_ocean(r_ocean, Mesh, r_water);
-	OnIslandWaterGenerationComplete.Broadcast();
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated map water in %f seconds."), difference.GetTotalSeconds());
-#endif
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Water)
+		Water->assign_r_water(r_water, Rng, Mesh, Shape);
+		Water->assign_r_ocean(r_ocean, Mesh, r_water);
+		OnIslandWaterGenerationComplete.Broadcast();
+	}
 
 	// Elevation
-	Elevation->assign_t_elevation(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
-	Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
-	Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
-	OnIslandElevationGenerationComplete.Broadcast();
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated map elevation in %f seconds."), difference.GetTotalSeconds());
-#endif
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Elevation)
+		Elevation->assign_t_elevation(t_elevation, t_coastdistance, t_downslope_s, Mesh, r_ocean, r_water, DrainageRng);
+		Elevation->redistribute_t_elevation(t_elevation, Mesh, r_ocean);
+		Elevation->assign_r_elevation(r_elevation, Mesh, t_elevation, r_ocean);
+		OnIslandElevationGenerationComplete.Broadcast();
+	}
 
 	// Rivers
-	spring_t = Rivers->find_spring_t(Mesh, r_water, t_elevation, t_downslope_s);
-	UIslandMapUtils::RandomShuffle(spring_t, RiverRng);
-	river_t.SetNum(NumRivers < spring_t.Num() ? NumRivers : spring_t.Num());
-	for (int i = 0; i < river_t.Num(); i++)
 	{
-		river_t[i] = spring_t[i];
+		TRACE_CPUPROFILER_EVENT_SCOPE(Rivers)
+		spring_t = Rivers->find_spring_t(Mesh, r_water, t_elevation, t_downslope_s);
+		UIslandMapUtils::RandomShuffle(spring_t, RiverRng);
+		river_t.SetNum(NumRivers < spring_t.Num() ? NumRivers : spring_t.Num());
+		for (int i = 0; i < river_t.Num(); i++)
+		{
+			river_t[i] = spring_t[i];
+		}
+		Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
+		OnIslandRiverGenerationComplete.Broadcast();
 	}
-	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
-	OnIslandRiverGenerationComplete.Broadcast();
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated %d map rivers in %f seconds."), CreatedRivers.Num(),
-	       difference.GetTotalSeconds());
-#endif
 
 	// Moisture
-	Moisture->assign_r_moisture(r_moisture, r_waterdistance, Mesh, r_water,
-	                            Moisture->find_moisture_seeds_r(Mesh, s_flow, r_ocean, r_water));
-	Moisture->redistribute_r_moisture(r_moisture, Mesh, r_water, BiomeBias.Rainfall, 1.0f + BiomeBias.Rainfall);
-	OnIslandMoistureGenerationComplete.Broadcast();
-
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated map moisture in %f seconds."), difference.GetTotalSeconds());
-#endif
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Moisture)
+		Moisture->assign_r_moisture(r_moisture, r_waterdistance, Mesh, r_water,
+		                            Moisture->find_moisture_seeds_r(Mesh, s_flow, r_ocean, r_water));
+		Moisture->redistribute_r_moisture(r_moisture, Mesh, r_water, BiomeBias.Rainfall, 1.0f + BiomeBias.Rainfall);
+		OnIslandMoistureGenerationComplete.Broadcast();
+	}
 
 	// Biomes
-	Biomes->assign_r_coast(r_coast, Mesh, r_ocean);
-	Biomes->assign_r_temperature(r_temperature, Mesh, r_ocean, r_water, r_elevation, r_moisture,
-	                             BiomeBias.NorthernTemperature, BiomeBias.SouthernTemperature);
-	Biomes->assign_r_biome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
-	OnIslandBiomeGenerationComplete.Broadcast();
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Biomes)
+		Biomes->assign_r_coast(r_coast, Mesh, r_ocean);
+		Biomes->assign_r_temperature(r_temperature, Mesh, r_ocean, r_water, r_elevation, r_moisture,
+		                             BiomeBias.NorthernTemperature, BiomeBias.SouthernTemperature);
+		Biomes->assign_r_biome(r_biome, Mesh, r_ocean, r_water, r_coast, r_temperature, r_moisture);
+		OnIslandBiomeGenerationComplete.Broadcast();
+	}
 
-#if !UE_BUILD_SHIPPING
-	finishedTime = FDateTime::UtcNow();
-	difference = finishedTime - startTime;
-	startTime = finishedTime;
-	UE_LOG(LogMapGen, Log, TEXT("Generated map biomes in %f seconds."), difference.GetTotalSeconds());
-	FTimespan completedTime = finishedTime - LastRegenerationTime;
-	UE_LOG(LogMapGen, Log, TEXT("Total map generation time: %f seconds."), completedTime.GetTotalSeconds());
-#endif
-	District->AssignDistrict(DistrictRegions, Mesh, r_ocean, Rng);
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Districts)
+		District->AssignDistrict(DistrictRegions, Mesh, r_ocean, Rng);
+	}
 
-	IslandCoastline = NewObject<UIslandCoastline>();
-	IslandCoastline->Initialize(Mesh, r_ocean, r_coast);
-
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(Coastlines)
+		IslandCoastline = NewObject<UIslandCoastline>();
+		IslandCoastline->Initialize(Mesh, r_ocean, r_coast);
+	}
 	// Do whatever we need to do when the island generation is done
 	OnIslandGenerationComplete.Broadcast();
 }
 
 FVector2D UIslandMapData::GetMapSize() const
 {
-	if(Mesh == nullptr)
+	if (Mesh == nullptr)
 		return FVector2D::ZeroVector;
 	return Mesh->GetSize();
 }

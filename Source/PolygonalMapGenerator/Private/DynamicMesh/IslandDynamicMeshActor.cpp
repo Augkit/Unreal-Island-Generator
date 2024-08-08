@@ -19,7 +19,7 @@
 
 void AIslandDynamicMeshActor::GenerateIslandTexture()
 {
-	SCOPE_CYCLE_COUNTER(STAT_GenerateDistrictIDTexture)
+	TRACE_CPUPROFILER_EVENT_SCOPE(AIslandDynamicMeshActor::GenerateDistrictIDTexture)
 	if (!MapData->IsValidLowLevel())
 	{
 		return;

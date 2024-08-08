@@ -8,8 +8,6 @@
 #include "GeometryScript/MeshVoxelFunctions.h"
 #include "IslandDynamicMeshActor.generated.h"
 
-DECLARE_CYCLE_STAT(TEXT("Generate District ID Texture"), STAT_GenerateDistrictIDTexture, STATGROUP_IslandDynamicMesh);
-
 UENUM(BlueprintType)
 enum class EGenerateMeshType : uint8
 {
