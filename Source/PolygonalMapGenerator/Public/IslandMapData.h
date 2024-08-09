@@ -33,7 +33,7 @@
 
 #include "IslandMapData.generated.h"
 
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(BlueprintType, Blueprintable, EditInlineNew)
 class POLYGONALMAPGENERATOR_API UIslandMapData : public UObject
 {
 	GENERATED_BODY()
