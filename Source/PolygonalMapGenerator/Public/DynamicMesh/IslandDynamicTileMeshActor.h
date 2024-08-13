@@ -26,6 +26,9 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Transform")
+	float MaxSpawnTileTickTime = 0.03f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Transform")
 	FVector2D Pivot = FVector2D(.5f, .5f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
@@ -46,10 +49,17 @@ public:
 
 	void AsyncGenerateDynamicMesh(UIslandDynamicAssets* InAssets);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Generate Mesh")
-	void PostGenerateIsland(bool bSucceed);
-
 protected:
 	int32 CompletedTilesCount = 0;
-	void CheckIfAllTilesAreCompleted();
+	virtual void CheckIfAllTilesAreCompleted();
+
+	int32 SpawnedTileActorsCount = 0;
+	TQueue<int32> TileToSpawnQueue;
+
+public:
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Generate Mesh")
+	void PostGenerateIsland(bool bSucceed);
 };

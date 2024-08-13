@@ -74,6 +74,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="MapData")
 	FORCEINLINE int32 GetTileAmount() const;
 
+	FORCEINLINE FGraphEventArray GetTileTasks() const;
+	
 	UFUNCTION(BlueprintCallable, Category="Texture")
 	FORCEINLINE UTexture2D* GetDistrictIDTexture01() const
 	{
@@ -85,4 +87,5 @@ public:
 	{
 		return DistrictIDTexture02;
 	}
+
 };

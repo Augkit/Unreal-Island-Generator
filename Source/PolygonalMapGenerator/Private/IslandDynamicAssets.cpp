@@ -23,16 +23,18 @@ void UIslandDynamicAssets::AsyncGenerateAssets()
 	for (int32 Index = 0; Index < TileAmount; Index++)
 	{
 		FGraphEventRef CalcTileMeshBuffersTask = FFunctionGraphTask::CreateAndDispatchWhenReady(
-			[&, Index] { CalcTileMeshBuffer(Index); }, TStatId(), &CalcTilePrerequisites);
+			[&, Index] { CalcTileMeshBuffer(Index); },
+			TStatId(), &CalcTilePrerequisites);
 		TileInfo.Emplace(CalcTileMeshBuffersTask);
 	}
 }
 
 FGraphEventRef UIslandDynamicAssets::AsyncGenerateDistrictIDTexture(const FGraphEventArray& Prerequisites)
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(AIslandDynamicMeshActor::GenerateDistrictIDTexture)
-	FGraphEventRef GenTextureDataTask = FFunctionGraphTask::CreateAndDispatchWhenReady([this]
+	FGraphEventRef GenTextureDataTask = FFunctionGraphTask::CreateAndDispatchWhenReady(
+		[this]
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(AIslandDynamicMeshActor::GenerateDistrictIDTexture)
 		const FVector2D Scale = FVector2D(DistrictIDTextureWidth, DistrictIDTextureHeight) / MapData->GetMapSize();
 		canvas_ity::canvas_20 Canvas(DistrictIDTextureWidth, DistrictIDTextureHeight);
 		for (const FDistrictRegion& DistrictRegion : MapData->GetDistrictRegions())
@@ -232,6 +234,7 @@ FGraphEventRef UIslandDynamicAssets::AsyncGenerateDistrictIDTexture(const FGraph
 	UpdateResourcePrerequisites.Emplace(GenTextureDataTask);
 	return FFunctionGraphTask::CreateAndDispatchWhenReady([this]
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(AIslandDynamicMeshActor::UpdateDistrictIDTextureResource);
 		DistrictIDTexture01->UpdateResource();
 		DistrictIDTexture02->UpdateResource();
 	}, TStatId(), &UpdateResourcePrerequisites, ENamedThreads::GameThread);
@@ -255,7 +258,8 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 	double MinUnitDepth = TNumericLimits<double>::Max();
 	for (int32 VIndex = 0; VIndex < VerticesNum; VIndex++)
 	{
-		FVector2D RelativeLocation(VIndex / (TileResolution + 1) * SubgridSize.X, VIndex % (TileResolution + 1) * SubgridSize.Y);
+		FVector2D RelativeLocation(VIndex / (TileResolution + 1) * SubgridSize.X,
+		                           VIndex % (TileResolution + 1) * SubgridSize.Y);
 		FVector2D AbsoluteLocation = BoundaryMin + RelativeLocation;
 		double UnitDepth = 0.;
 		double MinDistance = TNumericLimits<double>::Max();
@@ -267,7 +271,8 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 			{
 				break;
 			}
-			MinDistance = FMath::Min(MinDistance, UIslandMapUtils::DistanceToPolygon2D(AbsoluteLocation, CoastLine.Positions));
+			MinDistance = FMath::Min(MinDistance,
+			                         UIslandMapUtils::DistanceToPolygon2D(AbsoluteLocation, CoastLine.Positions));
 		}
 		if (bPointInPolygon2D)
 		{
@@ -336,4 +341,15 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 int32 UIslandDynamicAssets::GetTileAmount() const
 {
 	return (TileDivisions + 1) * (TileDivisions + 1);
+}
+
+FGraphEventArray UIslandDynamicAssets::GetTileTasks() const
+{
+	FGraphEventArray Tasks;
+	Tasks.Empty(TileInfo.Num());
+	for (const FDynamicTileInfo& Info : TileInfo)
+	{
+		Tasks.Emplace(Info.Task);
+	}
+	return Tasks;
 }
