@@ -13,7 +13,6 @@ enum class EGenerateMeshType : uint8
 {
 	GMT_Delaunator UMETA(DisplayName="Delaunator"),
 	GMT_Voxelization UMETA(DisplayName="Voxelization"),
-	GMT_PixelMesh UMETA(DisplayName="Pixel Mesh"),
 };
 
 UENUM(BlueprintType)
@@ -108,7 +107,6 @@ protected:
 	virtual void GenerateIslandMesh(UDynamicMesh* DynamicMesh, const FTransform& Transform) override;
 	virtual void GenerateMeshDelaunator(UDynamicMesh* DynamicMesh, const FTransform& Transform);
 	virtual void GenerateMeshVoxelization(UDynamicMesh* DynamicMesh, const FTransform& Transform);
-	virtual void GenerateMeshPixel(UDynamicMesh* DynamicMesh, const FTransform& Transform);
 
 	virtual void SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance) override;
 

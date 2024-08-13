@@ -235,9 +235,6 @@ void AIslandDynamicMeshActor::GenerateIslandMesh(UDynamicMesh* DynamicMesh, cons
 	case EGenerateMeshType::GMT_Voxelization:
 		GenerateMeshVoxelization(DynamicMesh, Transform);
 		break;
-	case EGenerateMeshType::GMT_PixelMesh:
-		GenerateMeshPixel(DynamicMesh, Transform);
-		break;
 	}
 }
 
@@ -597,54 +594,6 @@ void AIslandDynamicMeshActor::GenerateMeshVoxelization(UDynamicMesh* DynamicMesh
 			}
 		}
 	}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, false);
-}
-
-void AIslandDynamicMeshActor::GenerateMeshPixel(UDynamicMesh* DynamicMesh, const FTransform& Transform)
-{
-	if (MeshPixelHeight <= 1 || MeshPixelWidth <= 1)
-	{
-		UE_LOG(LogMapGen, Error, TEXT("MeshPixelWidth: %d and MeshPixelHeight: %d cannot be smaller than 1"),
-		       MeshPixelWidth, MeshPixelHeight);
-		return;
-	}
-	FVector2D MapSize = MapData->GetMapSize();
-	FGeometryScriptPrimitiveOptions PrimitiveOptions;
-	UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendRectangleXY(
-		DynamicMesh, PrimitiveOptions, Transform,
-		MapSize.X, MapSize.Y, FMath::Max<int32>(MapSize.X / MeshPixelWidth, 1),
-		FMath::Max<int32>(MapSize.Y / MeshPixelHeight, 1)
-	);
-
-	FVector2D HalfMapSize = MapSize / 2;
-	DynamicMesh->EditMesh([&](FDynamicMesh3& EditMesh)
-	{
-		int NumVertices = EditMesh.MaxVertexID();
-		for (int Index = 0; Index < NumVertices; ++Index)
-		{
-			if (!EditMesh.IsVertex(Index))
-				continue;
-			FVector3d Position = EditMesh.GetVertex(Index);
-			FVector2D Point = {Position.X + HalfMapSize.X, Position.Y + HalfMapSize.Y};
-			bool bPointInPolygon2D = false;
-			double MinDistance = std::numeric_limits<double>::max();
-			for (const FCoastlinePolygon& CoastLine : MapData->GetCoastLines())
-			{
-				bPointInPolygon2D = UIslandMapUtils::PointInPolygon2D(Point, CoastLine.Positions);
-				if (bPointInPolygon2D)
-					break;
-				MinDistance = FMath::Min(MinDistance, UIslandMapUtils::DistanceToPolygon2D(Point, CoastLine.Positions));
-			}
-			if (bPointInPolygon2D && MinDistance <= BorderOffset)
-			{
-				float UnitDepth = (BorderOffset - MinDistance) / BorderOffset;
-				UnitDepth = UIslandMapUtils::Remap(UnitDepth, BorderDepthRemapMethod);
-				Position.Z += (UnitDepth - 1) * BorderDepth;
-				EditMesh.SetVertex(Index, Position);
-			}
-		}
-	}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, false);
-
-	UGeometryScriptLibrary_MeshNormalsFunctions::SetPerVertexNormals(DynamicMesh);
 }
 
 void AIslandDynamicMeshActor::SetMaterialParameters(UMaterialInstanceDynamic* MaterialInstance)
