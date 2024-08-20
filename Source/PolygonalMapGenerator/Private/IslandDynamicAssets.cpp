@@ -261,7 +261,13 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 		FVector2D RelativeLocation(VIndex / (TileResolution + 1) * SubgridSize.X,
 		                           VIndex % (TileResolution + 1) * SubgridSize.Y);
 		FVector2D AbsoluteLocation = BoundaryMin + RelativeLocation;
-		double UnitDepth = 0.;
+		float DistanceToRiverBoundary = 0.f;
+		if(MapData->LocationInRiver(AbsoluteLocation, DistanceToRiverBoundary))
+		{
+		UE_LOG(LogTemp, Log, TEXT("LocationInRiver: %s, DistanceToRiverBoundary: %f"), *AbsoluteLocation.ToString(), DistanceToRiverBoundary);
+		}
+		float RiverUnitDepth = (25.f - DistanceToRiverBoundary) / 25.f;
+
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bPointInPolygon2D = false;
 		for (const FCoastlinePolygon& CoastLine : MapData->GetCoastLines())
@@ -274,6 +280,7 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 			MinDistance = FMath::Min(MinDistance,
 			                         UIslandMapUtils::DistanceToPolygon2D(AbsoluteLocation, CoastLine.Positions));
 		}
+		double UnitDepth = 0.;
 		if (bPointInPolygon2D)
 		{
 			UnitDepth = 1.;
@@ -284,7 +291,7 @@ void UIslandDynamicAssets::CalcTileMeshBuffer(const int32 TileIndex)
 		}
 		MaxUnitDepth = FMath::Max(MaxUnitDepth, UnitDepth);
 		MinUnitDepth = FMath::Min(MinUnitDepth, UnitDepth);
-		Buffers.Vertices[VIndex].Z = UnitDepth;
+		Buffers.Vertices[VIndex].Z = UnitDepth * RiverUnitDepth;
 		Buffers.Vertices[VIndex].X = AbsoluteLocation.X;
 		Buffers.Vertices[VIndex].Y = AbsoluteLocation.Y;
 	}

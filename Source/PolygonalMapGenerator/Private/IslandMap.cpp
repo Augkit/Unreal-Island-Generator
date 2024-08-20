@@ -232,7 +232,7 @@ void AIslandMap::GenerateIsland_Implementation()
 	{
 		river_t[i] = spring_t[i];
 	}
-	Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
+	Rivers->assign_s_flow(s_flow, CreatedRivers, RiverPolygons, Mesh, t_downslope_s, river_t, RiverRng);
 	OnIslandRiverGenerationComplete.Broadcast();
 
 #if !UE_BUILD_SHIPPING

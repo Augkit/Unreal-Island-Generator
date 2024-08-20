@@ -205,7 +205,7 @@ void UIslandMapData::GenerateIsland_Implementation()
 		{
 			river_t[i] = spring_t[i];
 		}
-		Rivers->assign_s_flow(s_flow, CreatedRivers, Mesh, t_downslope_s, river_t, RiverRng);
+		Rivers->assign_s_flow(s_flow, CreatedRivers, RiverPolygons, Mesh, t_downslope_s, river_t, RiverRng);
 		OnIslandRiverGenerationComplete.Broadcast();
 	}
 
@@ -476,6 +476,26 @@ TArray<FTriangleIndex>& UIslandMapData::GetRiverTriangles()
 bool UIslandMapData::IsTriangleRiver(FTriangleIndex Triangle) const
 {
 	return river_t.Contains(Triangle);
+}
+
+bool UIslandMapData::LocationInRiver(const FVector2D& Location, float& DistanceToRiverBoundary) const
+{
+	double MaxDistance = -1.;
+	for (const FRiverPolygon& RiverPolygon : RiverPolygons)
+	{
+		if (UIslandMapUtils::PointInPolygon2D(Location, RiverPolygon.Polygon))
+		{
+			double Distance = UIslandMapUtils::DistanceToPolygon2D(Location, RiverPolygon.Polygon, false);
+			MaxDistance = FMath::Max(Distance, MaxDistance);
+		}
+	}
+	if(MaxDistance >= 0)
+	{
+		DistanceToRiverBoundary = MaxDistance;
+		return true;
+	}
+	DistanceToRiverBoundary = 0;
+	return false;
 }
 
 const TArray<FCoastlinePolygon>& UIslandMapData::GetCoastLines() const

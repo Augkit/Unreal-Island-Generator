@@ -136,6 +136,8 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<URiver*> CreatedRivers;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	TArray<FRiverPolygon> RiverPolygons;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandPointGenerationComplete;

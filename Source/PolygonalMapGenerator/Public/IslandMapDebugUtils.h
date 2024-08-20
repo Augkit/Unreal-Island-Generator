@@ -13,7 +13,10 @@ class POLYGONALMAPGENERATOR_API UIslandMapDebugUtils : public UBlueprintFunction
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
-	static void DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
+	static void DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData,
+	                      FLinearColor IslandColor = FLinearColor(0.937, 0.647, 0.451),
+	                      FLinearColor WaterColor = FLinearColor(0.94, 0.29, 0.612),
+	                      FLinearColor OceanColor = FLinearColor(0.341, 0.549, 0.898));
 
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
 	static void DrawRegion(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
@@ -26,4 +29,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
 	static void DrawDistrict(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData);
+
+	UFUNCTION(BlueprintCallable, Category = "Island Overview|Debug")
+	static void DrawRiver(UCanvasRenderTarget2D* RenderTarget2D, UIslandMapData* MapData,
+	                      FLinearColor Color = FLinearColor::White);
 };

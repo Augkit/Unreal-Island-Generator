@@ -18,6 +18,8 @@
 
 #include "Rivers/IslandRivers.h"
 
+#include "Clipper2Helper.h"
+
 UIslandRivers::UIslandRivers()
 {
 	MinSpringElevation = 0.3f;
@@ -37,7 +39,9 @@ bool UIslandRivers::IsTriangleWater(FTriangleIndex t, UTriangleDualMesh* Mesh, c
 	return false;
 }
 
-TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const
+TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(
+	UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation,
+	const TArray<FSideIndex>& t_downslope_s) const
 {
 	TSet<FTriangleIndex> spring_t;
 	if (Mesh != NULL)
@@ -61,17 +65,20 @@ TArray<FTriangleIndex> UIslandRivers::FindSpringTriangles_Implementation(UTriang
 	return spring_t.Array();
 }
 
-TArray<URiver*> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<int32> &s_flow, TMap<FTriangleIndex, URiver*> RiverMap, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, FRandomStream& RiverRng) const
+TArray<URiver*> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<int32>& s_flow,
+                                           TMap<FTriangleIndex, URiver*> RiverMap, UTriangleDualMesh* Mesh,
+                                           const TArray<FSideIndex>& t_downslope_s, FRandomStream& RiverRng) const
 {
 	TSet<FTriangleIndex> processedSlopes;
 	TArray<URiver*> createdRivers;
 	URiver* currentRiver = NULL;
 	FSideIndex lastS = FSideIndex();
-	while(true)
+	while (true)
 	{
 		if (processedSlopes.Contains(RiverTriangle))
 		{
-			UE_LOG(LogMapGen, Warning, TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
+			UE_LOG(LogMapGen, Warning,
+			       TEXT("Tried to process a slope we've already processed once this loop! We have an infinite loop."));
 			break;
 		}
 
@@ -161,7 +168,66 @@ TArray<URiver*> UIslandRivers::CreateRiver(FTriangleIndex RiverTriangle, TArray<
 	return riverArray;
 }
 
-void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<URiver*>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t, FRandomStream& RiverRng) const
+void UIslandRivers::GenerateRiverPolygons(UTriangleDualMesh* Mesh, TArray<FRiverPolygon>& RiverPolygons,
+                                          const TArray<URiver*>& Rivers) const
+{
+	TMap<FTriangleIndex, TArray<URiver*>> RiverMap;
+	for (URiver* River : Rivers)
+	{
+		FTriangleIndex LastTriIndex = River->RiverTriangles.Last();
+		TArray<URiver*>* RiverTris;
+		if (!RiverMap.Contains(LastTriIndex))
+		{
+			RiverTris = &RiverMap.Emplace(LastTriIndex, TArray<URiver*>());
+		}
+		else
+		{
+			RiverTris = &RiverMap[LastTriIndex];
+		}
+		RiverTris->Add(River);
+	}
+	RiverPolygons.Empty(RiverMap.Num());
+
+	for (TMap<FTriangleIndex, TArray<URiver*>>::TIterator It(RiverMap); It; ++It)
+	{
+		FClipperPathsD RiverPolyCluster;
+		for (URiver* River : It.Value())
+		{
+			TArray<FVector2D> NodePaths;
+			int32 RiverNodeNum = River->RiverTriangles.Num();
+			NodePaths.Empty(RiverNodeNum + 1);
+			if (RiverNodeNum > 1)
+			{
+				FVector2D First = Mesh->t_pos(River->RiverTriangles[RiverNodeNum - 1]);
+				FVector2D Second = Mesh->t_pos(River->RiverTriangles[RiverNodeNum - 2]);
+				FVector2D ReverseVec = First - Second;
+				double Length = ReverseVec.Length();
+				NodePaths.Emplace(ReverseVec / Length * 100. + First);
+				NodePaths.Emplace(First);
+				NodePaths.Emplace(Second);
+			}
+			for (int32 Index = RiverNodeNum - 3; Index >= 0; --Index)
+			{
+				NodePaths.Emplace(Mesh->t_pos(River->RiverTriangles[Index]));
+			}
+			FClipperPathsD PolyPaths;
+			UClipper2Helper::InflatePaths(
+				PolyPaths, UClipper2Helper::MakePath<double>(NodePaths),
+				50., EClipperJoinType::Miter, 10., EClipperEndType::Square);
+			UClipper2Helper::Union(RiverPolyCluster, RiverPolyCluster, PolyPaths);
+		}
+		RiverPolygons.Emplace();
+		auto& [EstuaryTriangleIndex, Rivers, Polygon] = RiverPolygons.Last();
+		EstuaryTriangleIndex = It.Key();
+		Rivers = It.Value();
+		UClipper2Helper::GetLongestPath(Polygon, RiverPolyCluster);
+	}
+}
+
+void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<URiver*>& Rivers,
+                                                  TArray<FRiverPolygon>& RiverPolygons, UTriangleDualMesh* Mesh,
+                                                  const TArray<FSideIndex>& t_downslope_s,
+                                                  const TArray<FTriangleIndex>& river_t, FRandomStream& RiverRng) const
 {
 	if (Mesh)
 	{
@@ -173,6 +239,7 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<
 		{
 			Rivers.Append(CreateRiver(river_t[i], s_flow, riverTriangles, Mesh, t_downslope_s, RiverRng));
 		}
+		GenerateRiverPolygons(Mesh, RiverPolygons, Rivers);
 	}
 	else
 	{
@@ -180,12 +247,16 @@ void UIslandRivers::AssignSideFlow_Implementation(TArray<int32>& s_flow, TArray<
 	}
 }
 
-TArray<FTriangleIndex> UIslandRivers::find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water, const TArray<float>& t_elevation, const TArray<FSideIndex>& t_downslope_s) const
+TArray<FTriangleIndex> UIslandRivers::find_spring_t(UTriangleDualMesh* Mesh, const TArray<bool>& r_water,
+                                                    const TArray<float>& t_elevation,
+                                                    const TArray<FSideIndex>& t_downslope_s) const
 {
 	return FindSpringTriangles(Mesh, r_water, t_elevation, t_downslope_s);
 }
 
-void UIslandRivers::assign_s_flow(TArray<int32>& s_flow, TArray<URiver*>& Rivers, UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s, const TArray<FTriangleIndex>& river_t, FRandomStream& RiverRng) const
+void UIslandRivers::assign_s_flow(TArray<int32>& s_flow, TArray<URiver*>& Rivers, TArray<FRiverPolygon>& RiverPolygons,
+                                  UTriangleDualMesh* Mesh, const TArray<FSideIndex>& t_downslope_s,
+                                  const TArray<FTriangleIndex>& river_t, FRandomStream& RiverRng) const
 {
-	AssignSideFlow(s_flow, Rivers, Mesh, t_downslope_s, river_t, RiverRng);
+	AssignSideFlow(s_flow, Rivers, RiverPolygons, Mesh, t_downslope_s, river_t, RiverRng);
 }

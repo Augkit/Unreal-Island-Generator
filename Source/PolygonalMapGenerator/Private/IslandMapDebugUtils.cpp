@@ -1,21 +1,19 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "IslandMapDebugUtils.h"
 
-
-#include "IslandMapDebugUtils.h"
-
+#include "Clipper2Helper.h"
 #include "Coastline/IslandCoastline.h"
 #include "Engine/Canvas.h"
 #include "Engine/CanvasRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
 
-void UIslandMapDebugUtils::DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData)
+void UIslandMapDebugUtils::DrawWater(UCanvasRenderTarget2D* RenderTarget2D, const UIslandMapData* MapData,
+                                     FLinearColor IslandColor, FLinearColor WaterColor, FLinearColor OceanColor)
 {
 	if (MapData == nullptr)
 		return;
 	UTriangleDualMesh* Mesh = MapData->Mesh;
 	if (Mesh == nullptr)
 		return;
-	Mesh->GetTriangleCentroids();
 	UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
@@ -38,13 +36,13 @@ void UIslandMapDebugUtils::DrawWater(UCanvasRenderTarget2D* RenderTarget2D, cons
 		CanvasTris.Empty(TrianglePos.Num() - 2);
 		FVector2D FirstPos = TrianglePos[0];
 		FVector2D SecondPos = TrianglePos[1];
-		FLinearColor Color = FLinearColor(0.937, 0.647, 0.451);
+		FLinearColor Color = IslandColor;
 		if (MapData->IsPointWater(PointIndex))
 		{
-			Color = FLinearColor(0.94, 0.29, 0.612);
+			Color = WaterColor;
 			if (MapData->IsPointOcean(PointIndex))
 			{
-				Color = FLinearColor(0.341, 0.549, 0.898);
+				Color = OceanColor;
 			}
 		}
 		for (int32 i = 2; i < TrianglePos.Num(); i++)
@@ -72,7 +70,6 @@ void UIslandMapDebugUtils::DrawRegion(UCanvasRenderTarget2D* RenderTarget2D, con
 	UTriangleDualMesh* Mesh = MapData->Mesh;
 	if (Mesh == nullptr)
 		return;
-	Mesh->GetTriangleCentroids();
 	UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
@@ -133,7 +130,6 @@ void UIslandMapDebugUtils::DrawCoastline(UCanvasRenderTarget2D* RenderTarget2D, 
 		return;
 
 	UTriangleDualMesh* Mesh = MapData->Mesh;
-	Mesh->GetTriangleCentroids();
 	UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
@@ -175,7 +171,6 @@ void UIslandMapDebugUtils::DrawTriangulationIsland(UCanvasRenderTarget2D* Render
 		return;
 
 	UTriangleDualMesh* Mesh = MapData->Mesh;
-	Mesh->GetTriangleCentroids();
 	UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
@@ -231,6 +226,53 @@ void UIslandMapDebugUtils::DrawDistrict(UCanvasRenderTarget2D* RenderTarget2D, c
 			CanvasTri.V2_Pos = Tri.V2 * Scale;
 			CanvasTris.Add(CanvasTri);
 		}
+	}
+	Canvas->K2_DrawTriangle(nullptr, CanvasTris);
+
+	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(MapData->GetWorld(), Context);
+}
+
+void UIslandMapDebugUtils::DrawRiver(UCanvasRenderTarget2D* RenderTarget2D, UIslandMapData* MapData, FLinearColor Color)
+{
+	if (MapData == nullptr)
+		return;
+	TArray<URiver*>& Rivers = MapData->CreatedRivers;
+	if (Rivers.IsEmpty())
+	{
+		return;
+	}
+	UCanvas* Canvas;
+	FVector2D Size;
+	FDrawToRenderTargetContext Context;
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(MapData->GetWorld(), RenderTarget2D, Canvas, Size,
+	                                                       Context);
+	const FVector2D Scale = Size / MapData->GetMapSize();
+	TArray<FCanvasUVTri> CanvasTris;
+	for(const FRiverPolygon& RiverPolygon : MapData->RiverPolygons){
+		const TArray<FVector2D>& Polygon = RiverPolygon.Polygon;
+		TArray<FPolyTriangle2D> Triangles;
+		TArray<int32> PolyIndices;
+		for(int32 Index = 0; Index < Polygon.Num(); ++Index)
+		{
+			PolyIndices.Emplace(Index);
+		}
+		UPolyPartitionHelper::Triangulate(Polygon, PolyIndices, Triangles);
+		for (const FPolyTriangle2D& Tri : Triangles)
+		{
+			FCanvasUVTri CanvasTri;
+			CanvasTri.V0_Color = Color;
+			CanvasTri.V1_Color = Color;
+			CanvasTri.V2_Color = Color;
+			CanvasTri.V0_Pos = Tri.V0 * Scale;
+			CanvasTri.V1_Pos = Tri.V1 * Scale;
+			CanvasTri.V2_Pos = Tri.V2 * Scale;
+			CanvasTris.Add(CanvasTri);
+		}
+		// for(int32 Index = 0; Index < RiverCluster.Num() -1; ++Index)
+		// {
+		// 	Canvas->K2_DrawLine(RiverCluster[Index] * Scale,
+		// 		RiverCluster[Index + 1] * Scale, 3, FLinearColor::Red);
+		// }
 	}
 	Canvas->K2_DrawTriangle(nullptr, CanvasTris);
 

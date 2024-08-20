@@ -33,9 +33,9 @@ UENUM(BlueprintType)
 enum class ERemapType : uint8
 {
 	RT_Linear UMETA(DisplayName="Linear"),
-	RT_EaseInSine  UMETA(DisplayName="Ease In Sine"),
-	RT_EaseOutSine  UMETA(DisplayName="Ease Out Sine"),
-	RT_EaseInOutSine  UMETA(DisplayName="Ease In Out Sine"),
+	RT_EaseInSine UMETA(DisplayName="Ease In Sine"),
+	RT_EaseOutSine UMETA(DisplayName="Ease Out Sine"),
+	RT_EaseInOutSine UMETA(DisplayName="Ease In Out Sine"),
 	RT_EaseInQuad UMETA(DisplayName="Ease In Quad"),
 	RT_EaseOutQuad UMETA(DisplayName="Ease Out Quad"),
 	RT_EaseInOutQuad UMETA(DisplayName="Ease In Out Quad"),
@@ -88,6 +88,21 @@ public:
 	{
 		return RiverTriangles.Num();
 	}
+};
+
+USTRUCT(BlueprintType)
+struct POLYGONALMAPGENERATOR_API FRiverPolygon
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FTriangleIndex EstuaryTriangleIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<URiver*> Rivers;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FVector2D> Polygon;
 };
 
 USTRUCT(BlueprintType)
@@ -281,5 +296,6 @@ public:
 
 	static bool PointInPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon);
 	static double DistanceToEdge2D(const FVector2D& Point, const FVector2D& EdgePointA, const FVector2D& EdgePointB);
-	static double DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon, bool bZeroIfInner = true);
+	static double DistanceToPolygon2D(const FVector2D& Point, const TArray<FVector2D>& Polygon,
+	                                  bool bZeroIfInner = true);
 };

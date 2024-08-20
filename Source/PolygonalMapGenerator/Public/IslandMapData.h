@@ -145,7 +145,8 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
 	TArray<URiver*> CreatedRivers;
-
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "Map")
+	TArray<FRiverPolygon> RiverPolygons;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnIslandGenerationComplete OnIslandPointGenerationComplete;
@@ -258,6 +259,8 @@ public:
 	TArray<FTriangleIndex>& GetRiverTriangles();
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
 	bool IsTriangleRiver(FTriangleIndex Triangle) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Procedural Generation|Island Generation|Rivers")
+	bool LocationInRiver(const FVector2D& Location, float& DistanceToRiverBoundary) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	const TArray<FCoastlinePolygon>& GetCoastLines() const;
